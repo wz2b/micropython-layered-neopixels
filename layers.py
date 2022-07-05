@@ -15,6 +15,7 @@
 """
 import neopixel
 
+
 class LayeredNeoPixel:
     """
     Layering for NeoPixel arrays.
@@ -114,7 +115,35 @@ class LayeredNeoPixel:
         self.relinquishto(layer)
         self.write()
 
-    def _alpha_blend(self, led_num: int) -> list:
+    def fade(self, layer: int, scale: float):
+        """
+        Fade an entire layer (all LEDs) by a given amount
+        :param layer:
+        :param scale: amount to scale by.  0.1 makes the LED 10% dimmer.
+        :return:
+        """
+        scale_by = 1.0 - scale
+        if scale_by < 0.0:
+            scale_by = 0.0
+
+        for i in range(0, len(self.np)):
+            if self.layers[i][layer] is not None:
+                current = self.layers[i][layer]
+                self.layers[i][layer] = ( current[0], current[1], current[2], current[3] * scale_by)
+
+    def fadew(self, layer: int, scale: float):
+        """
+        Fade an entire layer (all LEDs) by a given amount, then refresh hardware array
+        :param layer:
+        :param scale: amount to scale by.  0.1 makes the LED 10% dimmer.
+        :return:
+        """
+        self.fade(layer, scale)
+        self.write()
+
+
+
+    def _alpha_blend(self, led_num: int) -> tuple:
         values = [x for x in self.layers[led_num] if x is not None]
 
         #
