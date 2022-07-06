@@ -33,10 +33,10 @@ class LayeredNeoPixel:
         # Construct the priority array
         num_leds = len(np)
         self.layers = [[None for i in range(0, layers)] for j in range(0, num_leds)]
-        self.np = np
+        self._np = np
         self.current_layer = layers - 1
 
-    def set_layer(self, layer: int):
+    def layer(self, layer: int):
         """
         Set the current layer
         :param layer: new current layer
@@ -63,7 +63,7 @@ class LayeredNeoPixel:
             raise Exception("priority does not exist")
         self.layers[led][layer] = (red, grn, blu, alpha)
 
-        self.np[led] = self._alpha_blend(led_num=led)
+        self._np[led] = self._alpha_blend(led_num=led)
 
     def setw(self, led: int, red: int, grn: int, blu: int, alpha: int = 1.0, layer: int = -1):
         """
@@ -128,7 +128,7 @@ class LayeredNeoPixel:
         if scale_by < 0.0:
             scale_by = 0.0
 
-        for led in range(0, len(self.np)):
+        for led in range(0, len(self._np)):
             if self.layers[led][layer] is not None:
                 current = self.layers[led][layer]
                 new_alpha = current[3] * scale_by
@@ -144,7 +144,42 @@ class LayeredNeoPixel:
         self.fade(layer, scale)
         self.write()
 
+    def all(self, red: int, grn: int, blu: int, alpha: int = 1.0, layer: int = -1):
+        """
+        Set all LEDs on a given layer (default: current layer) to the same color,
+        :param red:
+        :type red:
+        :param grn:
+        :type grn:
+        :param blu:
+        :type blu:
+        :param alpha: defaults to 1.0 (opaque)
+        :type alpha:
+        :param layer: defaults to current layer
+        :type layer:
+        """
+        for i in range(0, len(self._np)):
+            self.set(i, red, grn, blu, alpha=alpha, layer=layer)
 
+    def allw(self, red: int, grn: int, blu: int, alpha: int = 1.0, layer: int = -1):
+        """
+       Set all LEDs on a given layer (default: current layer) to the same color,
+        then refresh the hardware array
+        :param red:
+        :type red:
+        :param grn:
+        :type grn:
+        :param blu:
+        :type blu:
+        :param alpha: defaults to 1.0 (opaque)
+        :type alpha:
+        :param layer:
+        :type layer: defaults to current layer
+        :return:
+        :rtype:
+        """
+        self.all(red, grn, blu, alpha=alpha, layer=layer)
+        self.write()
 
     def _alpha_blend(self, led_num: int) -> tuple:
         values = [x for x in self.layers[led_num] if x is not None]
@@ -193,5 +228,5 @@ class LayeredNeoPixel:
         calling setw() and forcing a hardware refresh each time.
         :return: 
         """
-        self.np.write()
+        self._np.write()
 
