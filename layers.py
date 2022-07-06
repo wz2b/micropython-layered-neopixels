@@ -63,6 +63,8 @@ class LayeredNeoPixel:
             raise Exception("priority does not exist")
         self.layers[led][layer] = (red, grn, blu, alpha)
 
+        self.np[led] = self._alpha_blend(led_num=led)
+
     def setw(self, led: int, red: int, grn: int, blu: int, alpha: int = 1.0, layer: int = -1):
         """
         Set a pixel then update the neopixel array
@@ -126,10 +128,11 @@ class LayeredNeoPixel:
         if scale_by < 0.0:
             scale_by = 0.0
 
-        for i in range(0, len(self.np)):
-            if self.layers[i][layer] is not None:
-                current = self.layers[i][layer]
-                self.layers[i][layer] = ( current[0], current[1], current[2], current[3] * scale_by)
+        for led in range(0, len(self.np)):
+            if self.layers[led][layer] is not None:
+                current = self.layers[led][layer]
+                new_alpha = current[3] * scale_by
+                self.set(led, red=current[0], grn=current[1], blu=current[2], alpha=new_alpha, layer=layer)
 
     def fadew(self, layer: int, scale: float):
         """
@@ -190,7 +193,5 @@ class LayeredNeoPixel:
         calling setw() and forcing a hardware refresh each time.
         :return: 
         """
-        for i in range(0, len(self.layers)):
-            self.np[i] = self._alpha_blend(i)
         self.np.write()
 
